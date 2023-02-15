@@ -1,0 +1,1431 @@
+---
+title: "Rscript_Bishkek"
+author: "Yuxuan Ren"
+date: "2022-11-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(readr)
+library(readxl)
+library(tidyverse)
+library(openair)
+library(lubridate)  # to use month()
+library(Metrics)  # to use rmse
+library(gridExtra)
+library(chron)
+library(tidyr)  # to use gather function
+library(dplyr)  # to use summarise() 
+library(ggplot2)
+```
+
+```{r calculate hourly average}
+#read raw data
+hourly_Bishkek <- read_csv("~/Desktop/R/00_raw_data/raw_data_hourly_Bishkek.csv")
+
+#convert time into POSIXct to read month and hour
+date <- as.POSIXct(hourly_Bishkek$LocalDate,
+                   forma = "%m/%d/%Y %H:%M",
+                   tz = "Asia/Bishkek")
+hourly_Bishkek$date <- date
+
+#calculate hourly winter average for each site
+hourly_winter_avg <- hourly_Bishkek %>% 
+  mutate(date = hour(as.POSIXct(strptime(date, "%Y-%m-%d %H:%M:%S")))) %>%
+  group_by(date) %>%
+  summarise_at(vars("A0L6WC6K", "A1HWTS1C", "A217W1TD", "A2T6HRHN", "A351656H", "A46L1Q9R", "A4W69CQY", "A54YLL8Q", "A5B4T3WT", "A5CDDRVS", "A5NBYDFT", "A6R729WH", "A72WCG1S", "A8CT9853", "A91HGJY3", "A9S0V4H0", "AB0KG76X", "AB5VMN30", "ACKGNKTN", "ACMK4VSN", "AF50QSGJ", "AFJ1ZXFD", "AFPZPD5Q", "AGJLZSGP", "AGSSDS03", "AGVZF2GR", "AH8SNWS4", "AHC4THNC", "AHKHCTVZ", "AHLFZ06K", "AJN9C2C8", "AM8J0GRG", "AMLHVS5M", "AMQR9GFQ", "ANKZ85DV", "ANPPTM8J", "AQ0DPXTC", "AQ5773WB", "AQLY01N5", "AQNNXW4P", "AR8TFBKB", "ASL6TVF9", "ASVHB72H", "ATD9X7NC", "AVY9XZBZ", "AX6R0874", "AXK06SXN", "AY5WNZR5", "AYG0J36J", "AZ1JJZVN"), mean, na.rm = TRUE)
+#save the hourly_winter_avg
+write.csv(hourly_winter_avg, paste("~/Desktop/R/01_tidy_data/", "hourly_winter_avg_Bishkek.csv", sep = "_"))
+```
+
+```{r A0L6WC6K}
+#make diel plot
+date <- hourly_winter_avg$date
+A0L6WC6K <- hourly_winter_avg$A0L6WC6K
+
+ggplot(hourly_winter_avg, aes(x = date, y = A0L6WC6K)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A0L6WC6K") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_01_A0L6WC6K_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A1HWTS1C}
+#make diel plot
+date <- hourly_winter_avg$date
+A1HWTS1C <- hourly_winter_avg$A1HWTS1C
+
+ggplot(hourly_winter_avg, aes(x = date, y = A1HWTS1C)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A1HWTS1C") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_02_A1HWTS1C_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A217W1TD}
+#make diel plot
+date <- hourly_winter_avg$date
+A217W1TD <- hourly_winter_avg$A217W1TD
+
+ggplot(hourly_winter_avg, aes(x = date, y = A217W1TD)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A217W1TD") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_03_A217W1TD_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A2T6HRHN}
+#make diel plot
+date <- hourly_winter_avg$date
+A2T6HRHN <- hourly_winter_avg$A2T6HRHN
+
+ggplot(hourly_winter_avg, aes(x = date, y = A2T6HRHN)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A2T6HRHN") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_04_A2T6HRHN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A351656H}
+#make diel plot
+date <- hourly_winter_avg$date
+A351656H <- hourly_winter_avg$A351656H
+
+ggplot(hourly_winter_avg, aes(x = date, y = A351656H)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A351656H") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_05_A351656H_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A46L1Q9R}
+#make diel plot
+date <- hourly_winter_avg$date
+A46L1Q9R <- hourly_winter_avg$A46L1Q9R
+
+ggplot(hourly_winter_avg, aes(x = date, y = A46L1Q9R)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A46L1Q9R") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_06_A46L1Q9R_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A4W69CQY}
+#make diel plot
+date <- hourly_winter_avg$date
+A4W69CQY <- hourly_winter_avg$A4W69CQY
+
+ggplot(hourly_winter_avg, aes(x = date, y = A4W69CQY)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A4W69CQY") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_07_A4W69CQY_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A54YLL8Q}
+#make diel plot
+date <- hourly_winter_avg$date
+A54YLL8Q <- hourly_winter_avg$A54YLL8Q
+
+ggplot(hourly_winter_avg, aes(x = date, y = A54YLL8Q)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A54YLL8Q") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_08_A54YLL8Q_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A5B4T3WT}
+#make diel plot
+date <- hourly_winter_avg$date
+A5B4T3WT <- hourly_winter_avg$A5B4T3WT
+
+ggplot(hourly_winter_avg, aes(x = date, y = A5B4T3WT)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A5B4T3WT") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_09_A5B4T3WT_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A5CDDRVS}
+#make diel plot
+date <- hourly_winter_avg$date
+A5CDDRVS <- hourly_winter_avg$A5CDDRVS
+
+ggplot(hourly_winter_avg, aes(x = date, y = A5CDDRVS)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A5CDDRVS") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_10_A5CDDRVS_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A5NBYDFT}
+#make diel plot
+date <- hourly_winter_avg$date
+A5NBYDFT <- hourly_winter_avg$A5NBYDFT
+
+ggplot(hourly_winter_avg, aes(x = date, y = A5NBYDFT)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A5NBYDFT") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_11_A5NBYDFT_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A6R729WH}
+#make diel plot
+date <- hourly_winter_avg$date
+A6R729WH <- hourly_winter_avg$A6R729WH
+
+ggplot(hourly_winter_avg, aes(x = date, y = A6R729WH)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A6R729WH") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_12_A6R729WH_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A72WCG1S}
+#make diel plot
+date <- hourly_winter_avg$date
+A72WCG1S <- hourly_winter_avg$A72WCG1S
+
+ggplot(hourly_winter_avg, aes(x = date, y = A72WCG1S)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A72WCG1S") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_13_A72WCG1S_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A8CT9853}
+#make diel plot
+date <- hourly_winter_avg$date
+A8CT9853 <- hourly_winter_avg$A8CT9853
+
+ggplot(hourly_winter_avg, aes(x = date, y = A8CT9853)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A8CT9853") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_14_A8CT9853_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A91HGJY3}
+#make diel plot
+date <- hourly_winter_avg$date
+A91HGJY3 <- hourly_winter_avg$A91HGJY3
+
+ggplot(hourly_winter_avg, aes(x = date, y = A91HGJY3)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A91HGJY3") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_15_A91HGJY3_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r A9S0V4H0}
+#make diel plot
+date <- hourly_winter_avg$date
+A9S0V4H0 <- hourly_winter_avg$A9S0V4H0
+
+ggplot(hourly_winter_avg, aes(x = date, y = A9S0V4H0)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("A9S0V4H0") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_16_A9S0V4H0_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AB0KG76X}
+#make diel plot
+date <- hourly_winter_avg$date
+AB0KG76X <- hourly_winter_avg$AB0KG76X
+
+ggplot(hourly_winter_avg, aes(x = date, y = AB0KG76X)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AB0KG76X") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_17_AB0KG76X_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AB5VMN30}
+#make diel plot
+date <- hourly_winter_avg$date
+AB5VMN30 <- hourly_winter_avg$AB5VMN30
+
+ggplot(hourly_winter_avg, aes(x = date, y = AB5VMN30)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AB5VMN30") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_18_AB5VMN30_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ACKGNKTN}
+#make diel plot
+date <- hourly_winter_avg$date
+ACKGNKTN <- hourly_winter_avg$ACKGNKTN
+
+ggplot(hourly_winter_avg, aes(x = date, y = ACKGNKTN)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ACKGNKTN") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_19_ACKGNKTN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ACMK4VSN}
+#make diel plot
+date <- hourly_winter_avg$date
+ACMK4VSN <- hourly_winter_avg$ACMK4VSN
+
+ggplot(hourly_winter_avg, aes(x = date, y = ACMK4VSN)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ACMK4VSN") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_20_ACMK4VSN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AF50QSGJ}
+#make diel plot
+date <- hourly_winter_avg$date
+AF50QSGJ <- hourly_winter_avg$AF50QSGJ
+
+ggplot(hourly_winter_avg, aes(x = date, y = AF50QSGJ)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AF50QSGJ") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_21_ACMK4VSN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AFJ1ZXFD}
+#make diel plot
+date <- hourly_winter_avg$date
+AFJ1ZXFD <- hourly_winter_avg$AFJ1ZXFD
+
+ggplot(hourly_winter_avg, aes(x = date, y = AFJ1ZXFD)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AFJ1ZXFD") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_22_AFJ1ZXFD_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AFPZPD5Q}
+#make diel plot
+date <- hourly_winter_avg$date
+AFPZPD5Q <- hourly_winter_avg$AFPZPD5Q
+
+ggplot(hourly_winter_avg, aes(x = date, y = AFPZPD5Q)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AFPZPD5Q") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_23_AFPZPD5Q_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AGJLZSGP}
+#make diel plot
+date <- hourly_winter_avg$date
+AGJLZSGP <- hourly_winter_avg$AGJLZSGP
+
+ggplot(hourly_winter_avg, aes(x = date, y = AGJLZSGP)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AGJLZSGP") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_24_AGJLZSGP_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AGSSDS03}
+#make diel plot
+date <- hourly_winter_avg$date
+AGSSDS03 <- hourly_winter_avg$AGSSDS03
+
+ggplot(hourly_winter_avg, aes(x = date, y = AGSSDS03)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AGSSDS03") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_25_AGSSDS03_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AGVZF2GR}
+#make diel plot
+date <- hourly_winter_avg$date
+AGVZF2GR <- hourly_winter_avg$AGVZF2GR
+
+ggplot(hourly_winter_avg, aes(x = date, y = AGVZF2GR)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AGVZF2GR") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_26_AGVZF2GR_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AH8SNWS4}
+#make diel plot
+date <- hourly_winter_avg$date
+AH8SNWS4 <- hourly_winter_avg$AH8SNWS4
+
+ggplot(hourly_winter_avg, aes(x = date, y = AH8SNWS4)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AH8SNWS4") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_27_AH8SNWS4_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AHC4THNC}
+#make diel plot
+date <- hourly_winter_avg$date
+AHC4THNC <- hourly_winter_avg$AHC4THNC
+
+ggplot(hourly_winter_avg, aes(x = date, y = AHC4THNC)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AHC4THNC") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_28_AHC4THNC_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AHKHCTVZ}
+#make diel plot
+date <- hourly_winter_avg$date
+AHKHCTVZ <- hourly_winter_avg$AHKHCTVZ
+
+ggplot(hourly_winter_avg, aes(x = date, y = AHKHCTVZ)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AHKHCTVZ") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_29_AHKHCTVZ_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AHLFZ06K}
+#make diel plot
+date <- hourly_winter_avg$date
+AHLFZ06K <- hourly_winter_avg$AHLFZ06K
+
+ggplot(hourly_winter_avg, aes(x = date, y = AHLFZ06K)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AHLFZ06K") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_30_AHLFZ06K_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AJN9C2C8}
+#make diel plot
+date <- hourly_winter_avg$date
+AJN9C2C8 <- hourly_winter_avg$AJN9C2C8
+
+ggplot(hourly_winter_avg, aes(x = date, y = AJN9C2C8)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AJN9C2C8") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_31_AJN9C2C8_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AM8J0GRG}
+#make diel plot
+date <- hourly_winter_avg$date
+AM8J0GRG <- hourly_winter_avg$AM8J0GRG
+
+ggplot(hourly_winter_avg, aes(x = date, y = AM8J0GRG)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AM8J0GRG") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_32_AM8J0GRG_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AMLHVS5M}
+#make diel plot
+date <- hourly_winter_avg$date
+AMLHVS5M <- hourly_winter_avg$AMLHVS5M
+
+ggplot(hourly_winter_avg, aes(x = date, y = AMLHVS5M)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AMLHVS5M") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_33_AMLHVS5M_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AMQR9GFQ}
+#make diel plot
+date <- hourly_winter_avg$date
+AMQR9GFQ <- hourly_winter_avg$AMQR9GFQ
+
+ggplot(hourly_winter_avg, aes(x = date, y = AMQR9GFQ)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AMQR9GFQ") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_34_AMQR9GFQ_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ANKZ85DV}
+#make diel plot
+date <- hourly_winter_avg$date
+ANKZ85DV <- hourly_winter_avg$ANKZ85DV
+
+ggplot(hourly_winter_avg, aes(x = date, y = ANKZ85DV)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ANKZ85DV") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_35_ANKZ85DV_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ANPPTM8J}
+#make diel plot
+date <- hourly_winter_avg$date
+ANPPTM8J <- hourly_winter_avg$ANPPTM8J
+
+ggplot(hourly_winter_avg, aes(x = date, y = ANPPTM8J)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ANPPTM8J") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_36_ANPPTM8J_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AQ0DPXTC}
+#make diel plot
+date <- hourly_winter_avg$date
+AQ0DPXTC <- hourly_winter_avg$AQ0DPXTC
+
+ggplot(hourly_winter_avg, aes(x = date, y = AQ0DPXTC)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AQ0DPXTC") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_37_AQ0DPXTC_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AQ5773WB}
+#make diel plot
+date <- hourly_winter_avg$date
+AQ5773WB <- hourly_winter_avg$AQ5773WB
+
+ggplot(hourly_winter_avg, aes(x = date, y = AQ5773WB)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AQ5773WB") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_38_AQ5773WB_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AQLY01N5}
+#make diel plot
+date <- hourly_winter_avg$date
+AQLY01N5 <- hourly_winter_avg$AQLY01N5
+
+ggplot(hourly_winter_avg, aes(x = date, y = AQLY01N5)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AQLY01N5") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_39_AQLY01N5_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AQNNXW4P}
+#make diel plot
+date <- hourly_winter_avg$date
+AQNNXW4P <- hourly_winter_avg$AQNNXW4P
+
+ggplot(hourly_winter_avg, aes(x = date, y = AQNNXW4P)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AQNNXW4P") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_40_AQNNXW4P_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AR8TFBKB}
+#make diel plot
+date <- hourly_winter_avg$date
+AR8TFBKB <- hourly_winter_avg$AR8TFBKB
+
+ggplot(hourly_winter_avg, aes(x = date, y = AR8TFBKB)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AR8TFBKB") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_41_AR8TFBKB_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ASL6TVF9}
+#make diel plot
+date <- hourly_winter_avg$date
+ASL6TVF9 <- hourly_winter_avg$ASL6TVF9
+
+ggplot(hourly_winter_avg, aes(x = date, y = ASL6TVF9)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ASL6TVF9") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_42_ASL6TVF9_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ASVHB72H}
+#make diel plot
+date <- hourly_winter_avg$date
+ASVHB72H <- hourly_winter_avg$ASVHB72H
+
+ggplot(hourly_winter_avg, aes(x = date, y = ASVHB72H)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ASVHB72H") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_43_ASVHB72H_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r ATD9X7NC}
+#make diel plot
+date <- hourly_winter_avg$date
+ATD9X7NC <- hourly_winter_avg$ATD9X7NC
+
+ggplot(hourly_winter_avg, aes(x = date, y = ATD9X7NC)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("ATD9X7NC") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_44_ATD9X7NC_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AVY9XZBZ}
+#make diel plot
+date <- hourly_winter_avg$date
+AVY9XZBZ <- hourly_winter_avg$AVY9XZBZ
+
+ggplot(hourly_winter_avg, aes(x = date, y = AVY9XZBZ)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AVY9XZBZ") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_45_AVY9XZBZ_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AX6R0874}
+#make diel plot
+date <- hourly_winter_avg$date
+AX6R0874 <- hourly_winter_avg$AX6R0874
+
+ggplot(hourly_winter_avg, aes(x = date, y = AX6R0874)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AX6R0874") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_46_AX6R0874_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AXK06SXN}
+#make diel plot
+date <- hourly_winter_avg$date
+AXK06SXN <- hourly_winter_avg$AXK06SXN
+
+ggplot(hourly_winter_avg, aes(x = date, y = AXK06SXN)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AXK06SXN") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_47_AXK06SXN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AY5WNZR5}
+#make diel plot
+date <- hourly_winter_avg$date
+AY5WNZR5 <- hourly_winter_avg$AY5WNZR5
+
+ggplot(hourly_winter_avg, aes(x = date, y = AY5WNZR5)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AY5WNZR5") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_48_AY5WNZR5_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AYG0J36J}
+#make diel plot
+date <- hourly_winter_avg$date
+AYG0J36J <- hourly_winter_avg$AYG0J36J
+
+ggplot(hourly_winter_avg, aes(x = date, y = AYG0J36J)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AYG0J36J") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_49_AYG0J36J_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+```{r AZ1JJZVN}
+#make diel plot
+date <- hourly_winter_avg$date
+AZ1JJZVN <- hourly_winter_avg$AZ1JJZVN
+
+ggplot(hourly_winter_avg, aes(x = date, y = AZ1JJZVN)) + 
+  geom_line(color = "black", size = 0.5, alpha = 10, linetype = 1) +
+  geom_point(color = "black", fill = "black", size = 2, shape = 21) +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) +
+  labs(x = expression("Time of day (local time)"), y = (expression("Hourly PM"[2.5]*" (µg/m"^{3}*")"))) +
+  ggtitle("AZ1JJZVN") +
+  theme(axis.text = element_text(size = 16, colour = "black"),
+        axis.line = element_line(colour = "black", size = 0),
+        axis.title.x = element_text(size = 16, margin = margin(10,0,0,0)),
+        axis.title.y = element_text(size = 16, margin = margin(0,10,0,0)),
+        plot.title = element_text(hjust = 0.5),
+        strip.text.x = element_text(size = 16),
+        panel.border = element_rect(fill = NA),  
+        panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA)
+  )
+
+#save the diel plot
+ggsave("~/Desktop/R/03_plots/diel_50_AZ1JJZVN_Bishkek.tiff", width = 8, height = 4, dpi = 600)
+```
+
+
+
+
+
+```{r}
+
+#convert time into POSIXct to read month and hour
+date <- as.POSIXct(hourly_Bishkek$LocalDate,
+                   forma = "%m/%d/%Y %H:%M",
+                   tz = "Asia/Bishkek")
+hourly_Bishkek$date <- date
+
+#timeAverage
+AOL6EC6K_winter_0 <- timeAverage(
+  AOL6EC6K_0,
+  avg.time = "3 month",
+  data.thresh = 0,
+  statistic = "mean",
+  type = "default",
+  percentile = NA,
+  start.date = inidate,
+  end.date = NA,
+  interval = "1 day",
+  vector.ws = FALSE,
+  fill = FALSE)
+#for 51 sites
+for (i in 0:23){
+  for (j in 1:nrow(SiteNames)){
+    if (conc$site[i] == SiteNames$Site_Code[j]) conc$site[i] <- SiteNames$City[j]
+  }
+}
+
+hourly_winter_0 <- selectByDate(
+  hourly_winter_avg,
+  start = "31/10/2021",
+  end = "31/01/2022",
+  hour = 0
+)
+
+mean(hourly_winter_0$A0L6WC6K)
+
+aggregate(hourly_winter_0, 
+          by = hour, 
+          FUN = mean
+)
+
+group_by()
+
+
+month = month(hourly_winter_avg$date)
+hour = hour(hourly_winter_avg$date)
+
+#select winter period (2021/10/31 00:00?)
+hourly_winter_avg <- subset(hourly_winter_avg, format(hourly_winter_avg$date, '%Y/%m/%d %H:%M:%S') > '2021/10/31 00:00:00' & format(hourly_winter_avg,'%Y/%m/%d %H:%M:%S') < '2022-01-31 00:00:00')
+hourly_winter_avg$date <- round_date(hourly_winter_avg$date, unit = "60 seconds")
+
+
+#calculate hourly winter average (Nov Dec Jan)
+#try 00:00
+winter_hour_0 <- filter(hour = 0)
+##winter_hour_0 <- filter(hourly_winter_avg, month == 11 | month == 12 | month == 1, hour = 0)
+winter_hour_mean_0 <- mean(winter_hour_0)
+
+#from 00:00 to 23:00
+for (i in 0:23){
+ winter_hour[i] <- filter(hourly_winter_avg,hour = i)
+ winter_hour_mean[i] <- mean(winter_hour[i])
+}
+
+
+tiff(filename = paste(r'(~/Desktop/R/03_plots)', A0L6WC6K, 'diel_winter_Bishkek.', sep = '_'), width = 960, height = 480)
+plot(date, A0L6WC6K,
+     whisklty = 0,
+     staplelty = 0,
+     xlab = "Time of the day",
+     ylab = '',
+     ylim = c(0,1000),
+     outline = FALSE,
+     cex.main = 2,
+     cex.lab = 1.5,
+     cex.axis = 1.3,
+     par(mar = c(5,5,3,0.5)))
+title(ylab = PM[2.5]~(µg/m^3), mgp = c(2.5,1,0), cex.lab = 1.5)
+grid(nx = 4, ny = NA, lty = 1)
+#save the file
+dev.off()
+
+```
