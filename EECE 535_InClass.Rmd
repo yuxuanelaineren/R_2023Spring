@@ -1,0 +1,412 @@
+---
+title: "R_InClass"
+author: "Yuxuan Ren"
+date: "2023-01-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+library(tidyverse)
+library(MASS)
+library(ISLR)
+```
+
+```{r Lecture4 Visualization}
+#qplot basic
+qplot(displ, hwy, data = mpg)
+qplot(displ, hwy, colour = class, data = mpg)
+#facet
+qplot(displ, hwy, data = mpg) + facet_grid(.~cyl)
+qplot(displ, hwy, data = mpg) + facet_grid(drv~.)
+qplot(displ, hwy, data = mpg) + facet_grid(drv~cyl)
+qplot(displ, hwy, data = mpg) + facet_wrap(~class)
+#jitter(Add Noise)
+qplot(cty, hwy, data = mpg)
+qplot(cty, hwy, data = mpg, geom = "jitter")
+#reorder
+qplot(class, hwy, data = mpg)
+qplot(reorder(class, hwy), hwy, data = mpg)
+qplot(reorder(class, -hwy), hwy, data = mpg)
+qplot(reorder(class, hwy, median), hwy, data = mpg)
+qplot(reorder(class, hwy), hwy, data = mpg, geom = "jitter")
+#boxplot
+qplot(reorder(class, hwy), hwy, data = mpg, geom = "boxplot")
+qplot(reorder(class, hwy), hwy, data = mpg, geom = c("jitter", "boxplot"))
+#ggplot
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg) + geom_smooth(mapping = aes(x = displ, y = hwy))
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + geom_point(mapping = aes(color = class)) + geom_smooth()
+#diamond
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut))
+ggplot(data = diamonds) + stat_count(mapping = aes(x = cut))
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = carat), binwidth = 1)
+```
+
+```{r Lecture5 Visualization}
+#ggplot histogram
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = carat), binwidth = 1)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = carat), binwidth = 0.1)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = carat), binwidth = 0.01)
+resolution(diamonds$carat)
+head("diamonds")
+#ggplot xlim
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = table), binwidth = 1) + xlim(50, 70)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = table), binwidth = 0.1) + xlim(50, 70)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = table), binwidth = 0.1) + xlim(50, 70) + ylim(0, 50)
+#ggplot color
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = depth), binwidth = 0.2)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = depth, fill = cut), binwidth = 0.2) + xlim(55, 70)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = depth), binwidth = 0.2) + xlim(55, 70) + facet_wrap(~cut)
+#ggplot exercise price
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = price), binwidth = 10)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = price), binwidth = 100)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = price), binwidth = 1000)
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = price), binwidth = 100) + xlim(0, 5000) + facet_wrap(~cut)
+#ggplot geom_freqpoly
+ggplot(diamonds, aes(price, stat(density), colour = cut)) + geom_freqpoly(binwidth = 500)
+#ggplot scattar plot
+ggplot(data = diamonds) + geom_point(aes(x = price, y = carat)) + geom_smooth(aes(x = price, y = smooth(carat)))
+#ggplot alpha(transpancy)
+ggplot(data = diamonds) + geom_point(aes(x = price, y = carat, alpha = 1/10)) + geom_smooth(aes(x = price, y = smooth(carat)))
+ggplot(data = diamonds) + geom_point(aes(x = price, y = carat, alpha = 1/100)) + geom_smooth(aes(x = price, y = smooth(carat)))
+```
+
+```{r Lecture7 DataStructure}
+#data frame
+#read.table() read.csv()
+dat <- data.frame(id = letters[1:10], x = 1:10, y = 11:20)
+is.list(dat)
+head(dat)
+tail(dat)
+dim(dat)
+nrow(dat)
+ncol(dat)
+str(dat)
+names(dat)
+colnames(dat)
+sapply(dat,calss)
+class(dat[,1]) #[,1]column [1,]row
+dat$y
+dat[["y"]]
+#subset
+x <- c(6, 1, 3, 6, 10, 5)
+x[-(1:4)] #[]subset based on position, remove 1 to 4
+x[c(5, 6)] #keep 5 and 6
+x[x > 5]
+x>5
+diamonds[diamonds$x > 10, ] #[]subset based on rows
+diamonds[1:10, c("carat", "cut")] #[]subset based on rows
+x_big <- diamonds$x > 10
+head(diamonds)
+```
+
+```{r Lecture9 DataStructure}
+# subset
+equal_dim <- diamonds$x == diamonds$y
+equal <- equal
+length(mean, subset, vector)
+head(mean, subset, vector)
+dim(mean, subset, vector)
+sum(mean, subset, vector)
+cost.per.carat.vector <- diamonds$price/diamonds$carat
+head(cost.per.carat.vector) <- head(cost.per.carat.vector) > 10000
+head(cost.per.carat.vector)
+dim(cost.per.carat.vector)
+sum(cost.per.carat.vector)
+# subset rows
+high.quality.vector <- diamonds$cut %in% c("very Good", "Premuim", "Ideal")
+head(high.quality.vector)
+dim(high.quality.vector)
+sum(high.quality.vector)
+str(diamonds$cut)
+high.quality.vector <- diamonds$cut  > "Good"
+head(high.quality.vector)
+# subset by characters
+diamonds[1:5, c("carat", "cut", "color")]
+diamonds[1:5, c(4, 9, 3)]
+# collapse the label
+head(mpg)
+head(mpg$fl)
+fl_map <- c("r" = "regular", "d" = "other", "p" = "premium", "c" = "other", "e" = "other")
+fl_map
+mpg$fl <- fl_map(mpg$fl)
+head(mpg$fl)
+table(mpg$fl)
+rm(mpg)
+
+# missing value
+5 + NA
+NA / 2
+sum(c(5, NA))
+mean(c(5, NA))
+NA < 3
+NA == 3
+NA == NA
+is.na()
+sum(c(5, NA), na.rm())
+getwd()
+```
+
+```{r Lecture10 Function}
+# rnorm
+set.seed(123)
+df <- tibble::tibble(
+    a = rnorm(10)
+    b = rnorm(10)
+    c = rnorm(10)
+    d = rnorm(10)
+)
+df$a <- (df$a - min(df$a, na.rm = TRUE)) / (max(df$a, na.rm = TRUE)) - min(df$a, na.rm = TRUE)
+x <- df$a
+rng <- range(x, na.rm = TRUE)
+(x - rng[1]) - (x - rng[2])
+
+# write function
+rescale01 <- function(x){
+    rng <- range(x, na.rm = TRUE)
+    (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale01(c(0, 5, 10))
+rescale.verbose <- function(x){
+    rng <- range(x, na.rm = TRUE)
+    output <- (x - rng[1]) / (rng[2] - rng[1])
+    print(output)
+}
+# rewrite with rescale01 function
+df$a <- rescale01(df$a)
+df$b <- rescale01(df$b)
+df$c <- rescale01(df$c)
+df$d <- rescale01(df$d)
+
+# for loops
+set.seed(123)
+df <- tibble::tibble(
+    a = rnorm(10)
+    b = rnorm(10)
+    c = rnorm(10)
+    d = rnorm(10)
+)
+output <- vector("double", ncol(df)) 
+for(i in seq_along(df)){ # 1:4
+    output[[i]] <- median(df[[i]]) # [[]] df is a list, i column in df
+}
+# alternatives: apply family
+set.seed(123)
+df <- tibble::tibble(
+    a = rnorm(10),
+    b = rnorm(10),
+    c = rnorm(10),
+    d = rnorm(10),
+)
+apply(df, 2, median) # margin: 1 for row, 2 for column
+lapply(df, median) # different length of list element
+sapply(df, median) # special list apply
+replicate(ncol(df), median(df$a)) #repeat
+
+# compute confidence interval
+set.seed(123)
+x <- runif(100)
+
+mean_ci <- function(x, conf = 0.95){
+    se <- sd(x) / sqrt(length(x))
+    alpha <- 1 - conf
+    mean(x) + se * qnorm(c(alpha / 2, 1 - alpha / 2))
+}
+mean_ci(x)
+mean_ci(x, conf = 0.99)
+# explicit return
+conplicated_function <- function(x, y, z){
+    if(length(x == 0 || length(y == 0){
+        return(0)
+    }
+    
+    #complicated code
+}
+```
+
+```{r Lecture11 For-loops}
+# apply functions
+set.seed(123)
+df <- data.frame(a = rnorm(10), b = rnorm(10), c = rnorm(10), d = rnorm(10))
+df
+apply(df, 2, median) # margin: 1 for row, 2 for column
+
+# function
+calculate_col_medians <- function(df) {
+  medians <- apply(df, 2, median)
+  return(medians)
+}
+col_medians <- calculate_col_medians(df)
+print(col_medians)
+
+# for-loops
+medians <- c()
+for (col in names(df)) {
+  medians <- c(medians, median(df[[col]]))
+}
+print(medians)
+
+# function
+col_summary <- function(df, fun) {
+  out <- vector("ddouble", length(df))
+  for (i in seq_along(df)){
+      out[i] <- fun(df[[i]])
+  }
+  return(out)
+
+}
+col_summary <- (df, median)
+col_summary <- (df, mean)
+
+# pipes: take one data, perform a series of transformations
+my_data %>% # indiate a pipe
+    do_this() %>%
+    
+iris %>%
+    subset(Sepal.Length > 5) %>%
+    aggregate(.~Species, ., mean) # aggregate by species and calculate the mean of each species
+
+#exercise
+iris.subset <- iris[iris$Septal.length > 5,]
+dim(iris.subset)
+iris.subset.setosa <- iris.subset[]
+apply(iris.subset.setosa[, 1:4], 2, mean)
+```
+
+```{r Lecture12 Conditional execution}
+# if statements
+has_name <- function(x){
+    nms <- names(x)
+    if(is.null(nms)){ #input has label
+        rep(FALSE, length(x))
+    } else {
+        !is.na(nms) & nms != ""
+    }
+}
+y <- c(1,2,3,4)
+has_name(y)
+y1 <- y
+names(y1) <- c("val1", "val2", "val3", "val4")
+has_name(y1)
+# cut() HW
+x <- -5:5
+cut(x, breaks = 2)
+# identical
+identical(0L, 0)
+# tidy data
+table1 %>%
+    mutate(rate = cases / population * 10000)
+head(table1)
+# plot
+ggplot(table1, aes(year, cases)) +
+    geom_line(aes(group = country), color = "grey50") +
+    geom_point(aes(color = country))
+
+head(table2)
+table2 %>%
+    subset(type == "cases")
+# filter()
+t2_cases <- filter(table2, type == "cases") %>%
+    rename(cases = count) %>%
+    arrange(country, year)
+t2_population <-filter(table2, type == "population") %>%
+    rename(population = count) %>%
+    arrange(country, year)
+```
+
+```{r Lecture13 Tidy data}
+t2_cases_per_cap <- tibble(
+    year = t2_cases$year,
+    country = t2_cases$country,
+    cases = t2_cases$cases,
+    population = t2_population$population
+) %>%
+    mutate(cases_per_cap = (cases / population) * 10000) %>%
+    select(country, year, cases_per_cap)
+
+# gathering
+tidy4a <- table4a %>%
+    gather('1999', '2000', key = "year", value = "cases")
+    
+tidy4b <-table4b %>%
+    gather('1999', '2000', key = "year", value = "population")
+
+left_join(tidy4a, tidy4b)
+
+# spread() 
+table2 %>%
+    spread(key = type, value = count)
+
+# point estimate
+pop.size <- 250000000
+possible.entries <- c(rep("support", 0.88 * pop.size), rep("not", 0.12 * pop.size))
+# set.sed(123)
+sample.entries <- sample(possible.entries, size = 1000)
+sum(sample.entries == "support") / 1000
+```
+
+```{r Lecture14 Statistical}
+# point estimate for 1000 times
+pop.size <- 250000000
+possible.entries <- c(rep("support", 0.88 * pop.size), rep("not", 0.12 * pop.size))
+sampled.p <- vector(mode = "numeric", length = 1000)
+
+# change the size from 1000 to 50
+for (i in 1:1000) {
+  sample.entries <- sample(possible.entries, size = 50)
+  sampled.p[i] <- sum(sample.entries == "support") / 50
+}
+
+sampled.p
+
+# histogram: smapling distrubution
+hist(sampled.p)
+mean(sampled.p)
+sd(sampled.p)
+
+# density function
+dnorm(0.5, mean = 0, sd = 1) # probability density at value x
+pnorm(0.5, mean = 0, sd = 1) # cumulative probability up to value x
+qnorm(0.25, mean = 0, sd = 1) # quantile for a specific probability
+
+# 99% confidence interval (z)
+pnorm(2.58) # area less than 2.58
+qnorm(0.995) # 0.99+(1-0.99)/2
+pnorm(2.58) - pnorm(-2.58) # 0.99
+
+# 95% confidence interval (z)
+0.887 - 1.96*0.01, 0.887 + 1.96*0.01 # p +- 1.96*SE
+pnorm(1.96) - pnorm(-1.96) # 0.95
+qnorm(0.025)
+qnorm(0.975)
+
+# 90% confidence interval (z)
+pnorm(1.64) # area less than 2.58
+qnorm(0.95) # 0.99+(1-0.99)/2
+pnorm(1.64) - pnorm(-1.64) # 0.90
+```
+
+```{r Lecture16 Statistical}
+# t distribution (thicker tail)
+pt(0.5, 1, lower.tail = TRUE, log.p = FALSE) # default is lower tail (MidTerm!)
+pt(0.5, 30) # df > 30, t-distribution is similar as normal distribution pnorm(0.5)
+
+a <- rt(100,10)
+
+# 95% confidence interval, probability is given
+mean + qt(0.025, df)*(sd/sqrt(n)) # SE standard error = sd/sqrt(n)
+
+
+```
+
+```{r Lecture21 Statistical}
+names(Boston)
+lm.fit <- lm(medv~lstat, data = Boston)
+summary(lm.fit)
+coef(lm.fit)
+confint(lm.fit)
+```

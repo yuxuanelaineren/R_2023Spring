@@ -1,0 +1,124 @@
+---
+title: "EECE 535_HW2_Yuxuan Ren"
+author: "Yuxuan Ren"
+date: "2023-03-03"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(tidyverse)
+```
+
+```{r Q1}
+## a) What are the key features of tidy data?
+# Each variable is a column, each observation is a row, and each type of observational unit is a table. (Wickham et al., 2014)
+
+## b) What characterize “messy data”?
+# Column headers are values, not variable names. Multiple variables are stored in one column. Variables are stored in both rows and columns. Multiple types of observational units are stored in the same table. A single observational unit is stored in multiple tables. (Wickham et al., 2014)
+
+## c) Tidy up the messy data.
+# generate "messy data" related seasonal PM2.5 and PM10 concentrations from 3 sites (FAKE)
+set.seed(123)
+
+messy_data <- data.frame(Site = c("Site 1", "Site 2", "Site 3"),
+                   Spring_PM25 = rnorm(3, mean = 20, sd = 2),
+                   Summer_PM25 = rnorm(3, mean = 10, sd = 3),
+                   Fall_PM25 = rnorm(3, mean = 20, sd = 2),
+                   Winter_PM25 = rnorm(3, mean = 30, sd = 1.5),
+                   Spring_PM10 = rnorm(3, mean = 20, sd = 2),
+                   Summer_PM10 = rnorm(3, mean = 10, sd = 3),
+                   Fall_PM10 = rnorm(3, mean = 20, sd = 2),
+                   Winter_PM10 = rnorm(3, mean = 30, sd = 1.5))
+
+head(messy_data)
+
+# seperate PM25 and PM10 from season into a column called "Type"
+tidy_data <- messy_data %>%
+  pivot_longer(-Site, names_to = c(".value", "Type"), names_sep = "_")
+
+# gather season and PM information into a column
+tidy_data <- tidy_data %>%
+  gather( -Site,  -Type, key = "Season", value = "PM")
+
+head(tidy_data)
+
+```
+
+```{r Q2}
+## Use the R base function cut() to simplify the following function:
+temp <- 5
+
+if (temp <= 0) { 
+    "freezing"
+} else if (temp <= 10) { 
+    "cold"
+} else if (temp <= 20) { 
+    "cool"
+} else if (temp <= 30) { 
+    "warm"
+} else{
+    "hot"
+}
+
+# cut() function: split a numeric vector into intervals and label intervals with names
+# define level function
+level <- function(temp) {
+  labels <- c("freezing", "cold", "cool", "warm", "hot")
+  breaks <- c(-Inf, 0, 10, 20, 30, Inf)
+  return(cut(temp, breaks, labels = labels))
+}
+
+level(5)
+```
+
+```{r Q3}
+## figure 2 from HW1 is chosen to iterate here.
+# original code: Distribution of Diamond Prices Classified by Cut, Color, and Clarity
+p1 <- diamonds %>%
+  ggplot(aes(x = price, y = after_stat(count), color = cut)) +
+  geom_freqpoly(binwidth = 500) +
+  xlim(0, 6000) +
+  labs(x = NULL, y = "Count", color = "Cut Quality") +
+  guides(color = guide_legend(ncol = 2))
+
+p2 <- diamonds %>%
+  ggplot(aes(x = price, y = after_stat(count), color = color)) +
+  geom_freqpoly(binwidth = 500) +
+  xlim(0, 6000) +
+  labs(x = NULL, y = "Count", color = "Color") +
+  guides(color = guide_legend(ncol = 2))
+
+p3 <- diamonds %>%
+  ggplot(aes(x = price, y = after_stat(count), color = clarity)) +
+  geom_freqpoly(binwidth = 500) +
+  xlim(0, 6000) +
+  labs(x = "Price (USD)", y = "Count", color = "Clarity Quality") +
+  guides(color = guide_legend(ncol = 2))
+
+plot_grid(p1, p2, p3, ncol = 1, align = "v", axis = "lr")
+
+# Define a custom function "f_plot" to simplify the visualization code
+f_plot <- function(data, x_var, color_var, color_label) {
+  ggplot(data, aes(x = !!sym(x_var), y = after_stat(count), color = !!sym(color_var))) +
+    geom_freqpoly(binwidth = 500) +
+    xlim(0, 6000) +
+    labs(x = ifelse(x_var == "price", "Price (USD)", NULL), y = "Count", color = color_label) +
+    guides(color = guide_legend(ncol = 2))
+}
+
+# Create each plot using the "f_plot" function
+p1 <- f_plot(diamonds, "price", "cut", "Cut Quality")
+p2 <- f_plot(diamonds, "price", "color", "Color")
+p3 <- f_plot(diamonds, "price", "clarity", "Clarity Quality")
+
+# Combine the plots into a grid
+plot_grid(p1, p2, p3, ncol = 1, align = "v", axis = "lr")
+
+# The "f_plot" function takes the diamonds dataset, the x-variable, the color-variable, and the label for the color scale as input. It creates the plot using the ggplot2 syntax and returns the plot object. The resulting figure is the same as the original code, but with less duplication of code and improved readability.
+```

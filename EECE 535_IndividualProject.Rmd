@@ -1,0 +1,394 @@
+---
+title: "EECE535_IndividualProject"
+author: "Yuxuan Ren"
+date: "2023-01-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(readr)
+library(readxl)
+library(tidyverse)
+library(openair)
+library(lubridate)  # to use month()
+library(Metrics)  # to use rmse
+library(gridExtra)
+library(chron)
+library(tidyr)  # to use gather function
+library(dplyr)  # to use summarise() 
+library(ggplot2)
+library(ggthemes)
+library(viridis)
+library(scales)
+```
+
+```{r Data overview}
+# read raw data
+hourly_PM <- read_csv("~/Desktop/Github/R_2023/00_raw_data/hourly_88101_2022.csv")
+
+# get information of raw dataset
+head(hourly_PM)
+dim(hourly_PM)
+object.size(hourly_PM) / 2^20
+
+# drop columns where all values in each row are the same
+hourly_PM <- hourly_PM[, apply(hourly_PM, 2, function(x) length(unique(x))) != 1]
+
+# get information of new dataset
+head(hourly_PM)
+dim(hourly_PM)
+object.size(hourly_PM) / 2^20
+
+# write dataset as a new file 
+write.csv(hourly_PM, file = "~/Desktop/Github/R_2023/01_tidy_data/hourly_88101_2022_tidy.csv", row.names = FALSE)
+```
+
+```{r Data cleaning}
+# read new data
+hourly_PM <- read_csv("~/Desktop/Github/R_2023/01_tidy_data/hourly_88101_2022_tidy.csv")
+
+# Summary statistics for orginal data
+summary(hourly_PM$`Sample Measurement`)
+mean_PM <- mean(hourly_PM$`Sample Measurement`)
+sd_PM <- sd(hourly_PM$`Sample Measurement`)
+
+# if samples are reported negative, the observation would be dropped
+neg_count <- sum(hourly_PM$`Sample Measurement` < 0)
+hourly_PM_nonNgeative <- hourly_PM %>%
+  filter(`Sample Measurement` >= 0)
+
+# if samples are reported below MDL, they would be replaced by 1/2 the MDL
+bleowMDL_count <- sum(hourly_PM_nonNgeative$`Sample Measurement` < hourly_PM_nonNgeative$MDL)
+hourly_PM_nonNgeative$`Sample Measurement` <- ifelse(hourly_PM_nonNgeative$`Sample Measurement` < hourly_PM_nonNgeative$MDL, hourly_PM_nonNgeative$MDL/2, hourly_PM_nonNgeative$`Sample Measurement`)
+
+# if samples are reported above mean + 3*sd, the observation would be dropped
+max_conc <- mean_PM + 3*sd_PM
+above_count <- sum(hourly_PM$`Sample Measurement` > max_conc)
+hourly_PM_sub <- subset(hourly_PM_nonNgeative, `Sample Measurement` <= max_conc)
+
+# Summary statistics for new data
+summary(hourly_PM_sub$`Sample Measurement`)
+mean(hourly_PM_sub$`Sample Measurement`)
+sd(hourly_PM_sub$`Sample Measurement`)
+
+# create the box plot
+boxOriginal <- ggplot(hourly_PM, aes(y = `Sample Measurement`)) +
+  geom_boxplot() +
+  labs(x = NULL, y = expression("PM"[2.5]*" Concentration ("*mu*"g/m"^3*")"), 
+       title = expression("PM"[2.5]*" Concentration in Original Dataset"),
+       font = "Arial", size = 18) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.title = element_text(face = "bold", size = 22, hjust = 0.5),
+        axis.title.y = element_text(face = "plain", size = 18),
+        axis.text.y = element_text(face = "plain", size = 18),
+        plot.margin = margin(10, 10, 10, 10, "pt"),
+        plot.background = element_rect(fill = "white"),
+        panel.background = element_rect(fill = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+        panel.grid.major = element_line(colour = "grey", linetype = "dashed"),
+        panel.grid.minor = element_blank())  +
+  coord_fixed(ratio = 1/10)
+
+boxRemoveOutlier <- ggplot(hourly_PM_sub, aes(y = `Sample Measurement`)) +
+  geom_boxplot() +
+  labs(x = NULL, y = expression("PM"[2.5]*" Concentration ("*mu*"g/m"^3*")"), 
+       title = expression("PM"[2.5]*" Concentration after Outlier Removal"),
+       font = "Arial", size = 18) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.title = element_text(face = "bold", size = 22, hjust = 0.5),
+        axis.title.y = element_text(face = "plain", size = 18),
+        axis.text.y = element_text(face = "plain", size = 18),
+        plot.margin = margin(10, 10, 10, 10, "pt"),
+        plot.background = element_rect(fill = "white"),
+        panel.background = element_rect(fill = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+        panel.grid.major = element_line(colour = "grey", linetype = "dashed"),
+        panel.grid.minor = element_blank())
+
+# export the plot
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/box_original_all.tiff",
+       plot = boxOriginal,
+       dpi = 300)
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/box_reomve_outlier_all.tiff", 
+       plot = boxRemoveOutlier, 
+       dpi = 300)
+
+print(boxOriginal)
+print(boxRemoveOutlier)
+```
+
+```{r Data visualization}
+# subset the data to select rows where "State Name" is "Missouri" or "California"
+ca_mo_ny_PM <- subset(hourly_PM_sub, `State Name` %in% c("California", "Missouri", "New York"))
+
+# create box plot
+box_ca_mo_ny <- ggplot(ca_mo_ny_PM, aes(x = `State Name`, y = `Sample Measurement`, fill = `State Name`)) +
+  geom_boxplot() +
+  labs(x = NULL, y = expression("PM"[2.5]*" Concentration ("*mu*"g/m"^3*")"), 
+       title = expression("PM"[2.5]*" Concentration in CA, MO, and NY"),
+       font = "Arial", size = 18) +
+  scale_fill_manual(values = c("green", "red", "blue"), 
+                    guide = "none") +
+  theme(plot.title = element_text(face = "bold", size = 22, hjust = 0.5),
+        axis.title.y = element_text(face = "plain", size = 18),
+        axis.text.y = element_text(face = "plain", size = 18),
+        axis.text.x = element_text(face = "plain", size = 18),
+        legend.position = "bottom",
+        legend.justification = "center",
+        plot.margin = margin(10, 10, 30, 10, "pt"), # increase bottom margin
+        plot.background = element_rect(fill = "white"),
+        panel.background = element_rect(fill = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+        panel.grid.major = element_line(colour = "grey", linetype = "dashed"),
+        panel.grid.minor = element_blank()) +
+  coord_fixed(ratio = 1/10)
+
+# create histogram
+histogram_ca_mo_ny <- ggplot(ca_mo_ny_PM, aes(x = `Sample Measurement`, fill = `State Name`)) +
+  geom_histogram(binwidth = 0.1, alpha = 0.8) +
+  facet_wrap(~`State Name`, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = c("California" = "green", "Missouri" = "red", "New York" = "blue"), 
+                    guide = "none") +
+  labs(x = expression("PM"[2.5]*" Concentration ("*mu*"g/m"^3*")"), y = "") +
+  ggtitle(expression("PM"[2.5]*" Concentration in CA, MO, and NY")) +
+  theme(plot.title = element_text(size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial", face = "bold"),
+        legend.text = element_text(size = 18, family = "Arial"),
+        legend.title = element_text(size = 18, family = "Arial", face = "bold"),
+        strip.text = element_text(size = 18, family = "Arial", face = "bold"))
+
+# export the plot
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/box_ca_mo_ny.tiff", 
+       plot = box_ca_mo_ny, 
+       dpi = 300)
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/histogram_ca_mo_ny.tiff",
+       plot = histogram_ca_mo_ny,
+       dpi = 300)
+
+print(box_ca_mo_ny)
+print(histogram_ca_mo_ny)
+```
+
+```{r Hypothesis testing}
+# data overview
+head(hourly_PM_sub)
+
+## ALL
+# Convert the Time Local column to a time object
+hourly_PM_sub$`Time Local` <- as.POSIXct(hourly_PM_sub$`Time Local`, format = "%H:%M:%S")
+
+# Calculate the average PM2.5 concentration for each hour
+hourly_PM_avg <- aggregate(hourly_PM_sub$`Sample Measurement`, 
+                            list(hourly_PM_sub$`Time Local`), 
+                            mean)
+
+# Rename the columns of the aggregated dataset
+colnames(hourly_PM_avg) <- c("Time", "Avg.PM2.5")
+
+# Create the time of day plot
+diel_all <- ggplot(hourly_PM_avg, aes(x = Time, y = Avg.PM2.5)) +
+  geom_line() +
+  labs(x = "Hour (Local Time)", y = expression("PM"[2.5]*" Concentration (μg/m³)")) +
+  ggtitle(expression("Diurnal patterns of PM"[2.5]*" Concentrations")) +
+  scale_x_datetime(date_breaks = "1 hours", date_labels =  "%H")  +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"),
+        strip.text = element_text(size = 18, family = "Arial"))
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/diel_all.tiff",
+       plot = diel_all,
+       width = 12, height = 6,
+       dpi = 300)
+
+print(diel_all)
+
+## Misouri
+# subset the data to select rows where "State Name" is Missouri"
+hourly_PM_mo <- subset(hourly_PM_sub, `State Name` %in% c("Missouri"))
+
+# Calculate the average PM2.5 concentration for each hour
+hourly_PM_avg_mo <- aggregate(hourly_PM_mo$`Sample Measurement`, 
+                            list(hourly_PM_mo$`Time Local`), 
+                            mean)
+
+# Rename the columns of the aggregated dataset
+colnames(hourly_PM_avg_mo) <- c("Time", "Avg.PM2.5")
+
+# Create the time of day plot
+diel_mo <- ggplot(hourly_PM_avg_mo, aes(x = Time, y = Avg.PM2.5)) +
+  geom_line() +
+  labs(x = "Hour (Local Time)", y = expression("PM"[2.5]*" Concentration (μg/m³)")) +
+  ggtitle(expression("Diurnal patterns of PM"[2.5]*" Concentrations in Missouri")) +
+  scale_x_datetime(date_breaks = "1 hours", date_labels =  "%H")  +
+  scale_y_continuous(limits = c(6.3, 8.5), breaks = c(6.5, 7, 7.5, 8, 8.5)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"),
+        strip.text = element_text(size = 18, family = "Arial"))
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/diel_Missouri.tiff",
+       plot = diel_mo,
+       width = 12, height = 6,
+       dpi = 300)
+
+print(diel_mo)
+
+## New York
+# subset the data to select rows where "State Name" is "New York"
+hourly_PM_ny <- subset(hourly_PM_sub, `State Name` %in% c("New York"))
+
+# Calculate the average PM2.5 concentration for each hour
+hourly_PM_avg_ny <- aggregate(hourly_PM_ny$`Sample Measurement`, 
+                            list(hourly_PM_ny$`Time Local`), 
+                            mean)
+
+# Rename the columns of the aggregated dataset
+colnames(hourly_PM_avg_ny) <- c("Time", "Avg.PM2.5")
+
+# Create the time of day plot
+diel_ny <- ggplot(hourly_PM_avg_ny, aes(x = Time, y = Avg.PM2.5)) +
+  geom_line() +
+  labs(x = "Hour (Local Time)", y = expression("PM"[2.5]*" Concentration (μg/m³)")) +
+  ggtitle(expression("Diurnal patterns of PM"[2.5]*" Concentrations in New York")) +
+  scale_x_datetime(date_breaks = "1 hours", date_labels =  "%H")  +
+  scale_y_continuous(limits = c(6.3, 8.5), breaks = c(6.5, 7, 7.5, 8, 8.5)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"),
+        strip.text = element_text(size = 18, family = "Arial"))
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/diel_NewYork.tiff",
+       plot = diel_ny,
+       width = 12, height = 6,
+       dpi = 300)
+
+print(diel_ny)
+
+## California
+# subset the data to select rows where "State Name" is "California"
+hourly_PM_ca <- subset(hourly_PM_sub, `State Name` %in% c("California"))
+
+# Calculate the average PM2.5 concentration for each hour
+hourly_PM_avg_ca <- aggregate(hourly_PM_ca$`Sample Measurement`, 
+                            list(hourly_PM_ca$`Time Local`), 
+                            mean)
+
+# Rename the columns of the aggregated dataset
+colnames(hourly_PM_avg_ca) <- c("Time", "Avg.PM2.5")
+
+# Create the time of day plot
+diel_ca <- ggplot(hourly_PM_avg_ca, aes(x = Time, y = Avg.PM2.5)) +
+  geom_line() +
+  labs(x = "Hour (Local Time)", y = expression("PM"[2.5]*" Concentration (μg/m³)")) +
+  ggtitle(expression("Diurnal patterns of PM"[2.5]*" Concentrations in California")) +
+  scale_x_datetime(date_breaks = "1 hours", date_labels =  "%H")  +
+  scale_y_continuous(limits = c(6.3, 8.5), breaks = c(6.5, 7, 7.5, 8, 8.5)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"),
+        strip.text = element_text(size = 18, family = "Arial"))
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/diel_California.tiff",
+       plot = diel_ca,
+       width = 12, height = 6,
+       dpi = 300)
+
+print(diel_ca)
+
+# subset the data for morning (6-9am)
+morning_PM_mo <- subset(hourly_PM_mo, as.integer(format(hourly_PM_mo$`Time Local`, "%H")) >= 6 &
+                          as.integer(format(hourly_PM_mo$`Time Local`, "%H")) < 9)
+
+# subset the data for afternoon (3-6pm)
+afternoon_PM_mo <- subset(hourly_PM_mo, as.integer(format(hourly_PM_mo$`Time Local`, "%H")) >= 15 &
+                            as.integer(format(hourly_PM_mo$`Time Local`, "%H")) < 18)
+
+# create a histogram for morning period
+morning_hist <- ggplot(morning_PM_mo, aes(x = `Sample Measurement`)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "grey") +
+  labs(x = expression("PM"[2.5]*" Concentration (μg/m³)"), y = "Frequency") +
+  ggtitle(expression("Distribution of PM"[2.5]*" Concentrations During 6-9 am in Missouri" )) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"))
+
+# create a histogram for afternoon period
+afternoon_hist <- ggplot(afternoon_PM_mo, aes(x = `Sample Measurement`)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "grey") +
+  labs(x = expression("PM"[2.5]*" Concentration (μg/m³)"), y = "Frequency") +
+  ggtitle(expression("Distribution of PM"[2.5]*" Concentrations During 3-6 pm in Missouri" )) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"))
+
+# save the plots
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/morning_hist_Missouri.tiff",
+       plot = morning_hist,
+       width = 12, height = 6,
+       dpi = 300)
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/afternoon_hist_Missouri.tiff",
+       plot = afternoon_hist,
+       width = 12, height = 6,
+       dpi = 300)
+
+# print the plots
+print(morning_hist)
+print(afternoon_hist)
+
+# calculate number, average, and sd for morning dataset
+morning_n <- nrow(morning_PM_mo)
+morning_mean <- mean(morning_PM_mo$`Sample Measurement`)
+morning_sd <- sd(morning_PM_mo$`Sample Measurement`)
+
+# calculate number, average, and sd for afternoon dataset
+afternoon_n <- nrow(afternoon_PM_mo)
+afternoon_mean <- mean(afternoon_PM_mo$`Sample Measurement`)
+afternoon_sd <- sd(afternoon_PM_mo$`Sample Measurement`)
+
+# Join the two datasets based on matching columns
+matched_data <- inner_join(morning_PM_mo, afternoon_PM_mo,
+                           by = c("Latitude", "Longitude", "Date Local"))
+
+# Calculate the difference between morning and afternoon measurements
+matched_data <- matched_data %>% 
+  mutate(Measurement_Diff = `Sample Measurement.x` - `Sample Measurement.y`)
+
+# Plot the difference as a histogram
+diff_hist <- ggplot(matched_data, aes(Measurement_Diff)) + 
+  geom_histogram(binwidth = 1, color = "black", fill = "grey") +
+  labs(x = "Difference", y = "Frequency") + 
+  ggtitle(expression("Difference in PM"[2.5]*" Concentrations between Morning and Afternoon in Missouri")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, family = "Arial", face = "bold"),
+        axis.text = element_text(size = 18, family = "Arial"),
+        axis.title = element_text(size = 18, family = "Arial"))
+
+ggsave(file = "~/Desktop/Github/R_2023/03_plots/diff_hist_Missouri.tiff",
+       plot = diff_hist,
+       width = 12, height = 6,
+       dpi = 300)
+
+print(diff_hist)
+
+# Calculate the mean and standard deviation of Measurement_Diff
+mean_diff <- mean(matched_data$Measurement_Diff)
+sd_diff <- sd(matched_data$Measurement_Diff)
+
+# Print the results
+cat("Mean difference:", mean_diff, "\n")
+cat("Standard deviation of difference:", sd_diff, "\n")
+
+# Calculate the total number of observations in Measurement_Diff
+total_obs <- nrow(matched_data)
+
+# Print the result
+cat("Total number of observations in Measurement_Diff:", total_obs, "\n")
+```
